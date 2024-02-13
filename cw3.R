@@ -1,6 +1,6 @@
 generate <- function(steps, sims) {
   # Check if steps and sims are integers
-  if (!is.integer(steps) || !is.integer(sims)) {
+  if (is.integer(steps) || is.integer(sims)) {
     cat("Both steps and sims must be integers.\n")
     return(NULL)
   }
