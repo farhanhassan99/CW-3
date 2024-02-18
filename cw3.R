@@ -11,7 +11,7 @@ generate <- function(steps, sims) {
     # Loop the number of simulations
     for (i in 1:sims) {
       # Initialize a matrix to represent the person's position in the lanes
-      sim_matrix <- matrix(0, nrow = steps, ncol = 9, dimnames = list(paste0("Step", 1:steps), paste0("Lane", 1:9)))
+      sim_matrix <- matrix(0, nrow = steps, ncol = 9, dimnames = list(paste0("Step ", 1:steps), paste0("Lane ", 1:9)))
       # Start the person at lane 5
       sim_matrix[1, 5] <- 1
       
@@ -43,9 +43,10 @@ generate <- function(steps, sims) {
           # Update the person's position in the matrix
           sim_matrix[step, new_lane] <- 1
         }
+        sim_matrix[step, new_lane] <- 1
       }
       # Store the simulation result in the list
-      results[[paste0("simulation.", i)]] <- sim_matrix
+      results[[paste0("Simulation.", i)]] <- sim_matrix
     }
     
     # Return the list of simulation results
@@ -97,7 +98,7 @@ sim.analysis <- function(results) {
   
   # Save step_stats to summary.csv
   step_stats_df <- as.data.frame(step_stats)
-  colnames(step_stats_df) <- paste0("Lane", 1:9)
+  colnames(step_stats_df) <- paste0("Lane ", 1:9)
   rownames(step_stats_df) <- c(step_stats_labels, seq(10, min(nrow(total_observed) - 2, nrow(total_observed)), by = 10), "Final Step")
   write.csv(step_stats_df, file = "summary.csv")
 }
