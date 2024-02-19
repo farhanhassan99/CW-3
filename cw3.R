@@ -2,7 +2,7 @@
 generate <- function(steps, sims) {
   # Check if steps and sims are numeric, integer, and within the specified range
   if (is.numeric(steps) && is.numeric(sims) && steps <= 200 && sims <= 1000 && steps == round(steps) && sims == round(sims)) {
-    # Reading CSV file
+    # Reading CSV file, file.choose() to select the file for probabilities.csv
     probabilities <- read.csv("/Users/rae/Downloads/probabilities.csv", header = FALSE, row.names = 1)
     
     # Empty list to store simulation results
@@ -49,7 +49,7 @@ generate <- function(steps, sims) {
       results[[paste0("Simulation.", i)]] <- sim_matrix
     }
     
-    # Return the list of simulation results
+    # Return simulation results
     return(results)
     
   } else {
@@ -93,10 +93,10 @@ sim.analysis <- function(results) {
   final_step <- total_observed[nrow(total_observed), ]
   step_stats <- rbind(step_stats, final_step)
   
-  # Save total_observed to outcomes.csv
+  # Save total_observed to outcomes.csv as a separate file
   write.csv(total_observed, file = "outcomes.csv")
   
-  # Save step_stats to summary.csv
+  # Save step_stats to summary.csv as a separate file
   step_stats_df <- as.data.frame(step_stats)
   colnames(step_stats_df) <- paste0("Lane ", 1:9)
   rownames(step_stats_df) <- c(step_stats_labels, seq(10, min(nrow(total_observed) - 2, nrow(total_observed)), by = 10), "Final Step")
