@@ -1,4 +1,3 @@
-# Question 2 Part 1
 ann.loan <- function(type, n, x, i, p) {
   # Check if type is 'ann' or 'loan'
   if (any(type == c('ann', 'loan'))) {
@@ -35,12 +34,15 @@ ann.loan <- function(type, n, x, i, p) {
     stop("Invalid. 'p' can only take the values 1, 2, 3, 4, 6, and 12.")
   }
   
+  # Adjust interest rate based on compounding frequency
+  adjusted_i <- i / p
+  
   # Annuity or loan repayment calculation based on type
   if (type == 'ann') {
-    present_value <- x * ((1 - (1 + i)^(-n)) / i)
+    present_value <- x * ((1 - (1 + adjusted_i)^(-n)) / adjusted_i)
     return(present_value)
   } else {
-    total_repayment <- x * (i / (1 - (1 + i)^(-n)))
+    total_repayment <- x * (adjusted_i / (1 - (1 + adjusted_i)^(-n)))
     return(total_repayment)
   }
 }
