@@ -1,0 +1,162 @@
+ann.loan <- function(type, n, x, i, p) {
+  # Check if type is 'ann' or 'loan'
+  if (any(type == c('ann', 'loan'))) {
+    # Continue with the function if condition is met
+  } else {
+    stop("Invalid type. Use 'ann' for annuity calculations or 'loan' for loan repayment calculations.")
+  }
+  
+  # Check conditions for n
+  if (is.numeric(n) && n >= 1 && n <= 25 && n == round(n)) {
+    # Continue with the function if condition is met
+  } else {
+    stop("Invalid. 'n' must be an integer between 1 and 25.")
+  }
+  
+  # Check conditions for x
+  if (is.numeric(x) && x > 0) {
+    # Continue with the function if condition is met
+  } else {
+    stop("Invalid. 'x' must be a positive number.")
+  }
+  
+  # Check conditions for i
+  if (is.numeric(i) && i >= 0 && i <= 1) {
+    # Continue with the function if condition is met
+  } else {
+    stop("Invalid. 'i' must be a number between 0 and 1.")
+  }
+  
+  # Check conditions for p
+  if (any(p == c(1, 2, 3, 4, 6, 12))) {
+    # Continue with the function if condition is met
+  } else {
+    stop("Invalid. 'p' can only take the values 1, 2, 3, 4, 6, and 12.")
+  }
+  
+  # Annuity or loan repayment calculation based on type
+  if (type == 'ann') {
+    present_value <- x * ((1 - (1 + i)^(-n)) / i)
+    return(present_value)
+  } else {
+    total_repayment <- x * (i / (1 - (1 + i)^(-n)))
+    return(total_repayment)
+  }
+}
+
+# Test the function with some values
+# For annuity calculation
+annuity_pv <- ann.loan(type = 'ann', n = 10, x = 100, i = 0.05, p = 12)
+print(paste("Present value of annuity:", round(annuity_pv, 2)))
+
+# For loan repayment calculation
+loan_repayment <- ann.loan(type = 'loan', n = 4, x = 120, i = 0.06, p = 4)
+print(paste("Total annual loan repayment:", round(loan_repayment, 2)))
+
+# Function to read data from policies.csv and calculate amounts
+process_policies <- function() {
+  # Read data from policies.csv
+  policies <- read.csv("C:\\Users\\farha\\OneDrive\\Desktop\\policyholders.csv")
+  
+  # Initialize empty lists for annuity, loan, and error results
+  annuity_results_list <- list()
+  loan_results_list <- list()
+  error_results_list <- list()
+  
+  # Loop through each row in policies
+  for (row in 1:nrow(policies)) {
+    # Extract values from the current row
+    type <- as.character(policies[row, "type"])
+    n <- as.numeric(policies[row, "n"])
+    x <- as.numeric(policies[row, "x"])
+    i <- as.numeric(policies[row, "i"])
+    p <- as.numeric(policies[row, "p"])
+    surname <- as.character(policies[row, "surname"])
+    
+    # Check conditions for policy data
+    if (!is.na(type) && type %in% c(1, 2) &&
+        !is.na(n) && n >= 1 && n <= 25 && n == round(n) &&
+        is.numeric(x) && x > 0 &&
+        is.numeric(i) && i >= 0 && i <= 1 &&
+        !is.na(p) && any(p == c(1, 2, 3, 4, 6, 12))) {
+      
+      # Annuity or loan repayment calculation based on type
+      if (type == "1") {
+        present_value <- ann.loan("ann", n, x, i, p)
+        annuity_results_list[[row]] <- c(type, n, x, i, p, surname, present_value)
+      } else if (type == "2") {
+        total_repayment <- ann.loan("loan", n, x, i, p)
+        loan_results_list[[row]] <- c(type, n, x, i, p, surname, total_repayment)
+      }
+      
+    } else {
+      # If conditions are not met, store the row in the error results list
+      error_results_list[[row]] <- c(type, n, x, i, p, surname)
+    }
+  }
+  
+  # Convert lists to data frames
+  annuity_results <- do.call(rbind.data.frame, annuity_results_list)
+  loan_results <- do.call(rbind.data.frame, loan_results_list)
+  error_results <- do.call(rbind.data.frame, error_results_list)
+  
+  # Order results by surname if 'surname' column exists
+  if ("surname" %in% colnames(annuity_results)) {
+    annuity_results <- annuity_results[order(annuity_results$surname), ]
+  }
+  
+  if ("surname" %in% colnames(loan_results)) {
+    loan_results <- loan_results[order(loan_results$surname), ]
+  }
+  
+  if ("surname" %in% colnames(error_results)) {
+    error_results <- error_results[order(error_results$surname), ]
+  }
+  
+  # Write results to CSV files
+  write.csv(annuity_results, "C:\\Users\\farha\\OneDrive\\Desktop\\annuity_results.csv", row.names = FALSE)
+  write.csv(loan_results, "C:\\Users\\farha\\OneDrive\\Desktop\\loan_results.csv", row.names = FALSE)
+  write.csv(error_results, "C:\\Users\\farha\\OneDrive\\Desktop\\error_results.csv", row.names = FALSE)
+  
+  # Create a summary CSV file without using aggregate
+  all_results <- rbind(annuity_results, loan_results)
+  
+  # Ensure column names match before combining
+  # Combine annuity_results and loan_results, ensuring column names match
+  all_results <- rbind(annuity_results, loan_results)
+  
+  # Ensure column names match before combining
+  if (setequal(colnames(annuity_results), colnames(loan_results))) {
+    all_results <- rbind(annuity_results, loan_results)
+    
+    # Set column names explicitly
+    colnames(all_results) <- colnames(annuity_results)
+  } else {
+    stop("Column names do not match between annuity_results and loan_results.")
+  }
+  
+  
+  if (nrow(all_results) > 0) {
+    # Manually calculate summary statistics
+    summary_data <- do.call(rbind.data.frame, lapply(split(all_results, all_results$gender), function(subset) {
+      present_value_mean <- mean(subset$present_value, na.rm = TRUE)
+      present_value_sd <- sd(subset$present_value, na.rm = TRUE)
+      total_repayment_mean <- mean(subset$total_repayment, na.rm = TRUE)
+      total_repayment_sd <- sd(subset$total_repayment, na.rm = TRUE)
+      
+      return(data.frame(
+        gender = unique(subset$gender),
+        present_value_mean = present_value_mean,
+        present_value_sd = present_value_sd,
+        total_repayment_mean = total_repayment_mean,
+        total_repayment_sd = total_repayment_sd
+      ))
+    }))
+    
+    write.csv(summary_data, "C:\\Users\\farha\\OneDrive\\Desktop\\summary_results.csv", row.names = FALSE)
+  }
+  
+}
+
+# Call the function to process policies
+process_policies()
